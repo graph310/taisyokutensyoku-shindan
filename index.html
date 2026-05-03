@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>退職・転職診断（無料）</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0D1B3E;
+      --blue: #1A4FA0;
+      --blue-mid: #2E6DD4;
+      --yellow: #F5C842;
+      --yellow-dark: #D4A820;
+      --white: #FFFFFF;
+      --bg: #F0F4FA;
+      --text: #1A1A2E;
+      --gray: #6B7280;
+      --border: #D1DCF0;
+      --red: #E53E3E;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      max-width: 480px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .hero-img { width: 100%; display: block; }
+    .hero-btn-overlay {
+      position: absolute;
+      top: 84.7%;
+      left: 0; right: 0;
+      width: 100%;
+      z-index: 10;
+    }
+    .start-btn {
+      background: transparent;
+      color: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      width: 100%;
+      height: calc(100vw * 0.12);
+      display: block;
+      max-height: 58px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* MAIN */
+    main { max-width: 480px; margin: 0 auto; padding: 0 16px 60px; }
+
+    /* PROGRESS */
+    .progress-wrap { padding: 20px 0 14px; }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .progress-step { font-size: 13px; font-weight: 700; color: var(--blue); }
+    .progress-track { height: 5px; background: var(--border); border-radius: 99px; }
+    .progress-fill { height: 5px; background: linear-gradient(90deg, var(--navy), var(--blue-mid)); border-radius: 99px; transition: width 0.4s ease; }
+
+    /* QUESTION CARD */
+    .q-card {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 24px 20px;
+      box-shadow: 0 2px 12px rgba(26,67,170,0.1);
+      border: 1px solid var(--border);
+      animation: fadeUp 0.4s ease both;
+    }
+    .q-category {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      color: var(--blue); background: var(--bg);
+      padding: 3px 10px; border-radius: 4px;
+      display: inline-block; margin-bottom: 12px;
+    }
+    .q-text { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1.5; margin-bottom: 18px; }
+    .multi-hint { font-size: 12px; color: var(--gray); margin-bottom: 12px; }
+    .options { display: flex; flex-direction: column; gap: 9px; }
+    .opt-btn {
+      background: var(--white); border: 2px solid var(--border);
+      border-radius: 8px; padding: 13px 15px;
+      font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 500;
+      color: var(--text); cursor: pointer; text-align: left;
+      transition: all 0.15s; display: flex; align-items: center; gap: 10px;
+    }
+    .opt-btn:hover { border-color: var(--blue); background: #EEF3FC; }
+    .opt-btn.selected { border-color: var(--blue); background: #EEF3FC; color: var(--navy); font-weight: 700; }
+    .opt-mark {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--gray); background: var(--bg);
+    }
+    .opt-btn.selected .opt-mark { background: var(--navy); color: var(--white); border-color: var(--navy); }
+    .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+    .back-btn {
+      background: transparent; border: 2px solid var(--border); border-radius: 6px;
+      padding: 11px 20px; font-family: 'Noto Sans JP', sans-serif;
+      font-size: 13px; font-weight: 700; color: var(--gray); cursor: pointer;
+    }
+    .next-btn {
+      background: var(--navy); border: none; border-radius: 6px;
+      padding: 13px 28px; font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px; font-weight: 900; color: var(--white);
+      cursor: pointer; opacity: 0.3; pointer-events: none; transition: all 0.15s;
+    }
+    .next-btn.active { opacity: 1; pointer-events: auto; }
+
+    /* LOADING */
+    .loading { text-align: center; padding: 56px 0; }
+    .loading-ring {
+      width: 52px; height: 52px;
+      border: 4px solid var(--border); border-top-color: var(--navy);
+      border-radius: 50%; margin: 0 auto 20px;
+      animation: spin 0.9s linear infinite;
+    }
+    .loading-text { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
+    .loading-steps { display: flex; flex-direction: column; gap: 10px; max-width: 260px; margin: 0 auto; }
+    .loading-step { font-size: 13px; color: var(--border); text-align: left; opacity: 0; transition: all 0.5s; display: flex; align-items: center; gap: 8px; }
+    .loading-step.show { opacity: 1; color: var(--gray); }
+    .loading-step.done { color: var(--navy); font-weight: 700; }
+    .step-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* RESULT */
+    .result-hero {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      padding: 28px 20px; text-align: center;
+      border-radius: 10px; margin-top: 20px; margin-bottom: 14px;
+    }
+    .result-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--yellow); display: block; margin-bottom: 8px; }
+    .result-type { font-size: 22px; font-weight: 900; color: var(--white); line-height: 1.4; margin-bottom: 6px; }
+    .result-sub { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+
+    .card {
+      background: var(--white); border-radius: 10px;
+      padding: 22px 18px; margin-bottom: 12px;
+      box-shadow: 0 2px 12px rgba(26,67,170,0.08);
+      border: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.15em;
+      color: var(--blue); border-left: 4px solid var(--blue);
+      padding-left: 10px; margin-bottom: 14px;
+    }
+    .result-comment { font-size: 14px; color: var(--gray); line-height: 1.7; }
+
+    /* アクション提案 */
+    .action-card {
+      background: linear-gradient(135deg, var(--navy), var(--blue-mid));
+      border-radius: 10px; padding: 24px 18px; margin-bottom: 12px;
+    }
+    .action-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; color: var(--yellow); display: block; margin-bottom: 6px; }
+    .action-title { font-size: 18px; font-weight: 900; color: var(--white); margin-bottom: 8px; line-height: 1.4; }
+    .action-desc { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 18px; }
+
+    .jobs-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--yellow); color: var(--navy);
+      border: none; border-radius: 10px; padding: 16px;
+      font-family: 'Noto Sans JP', sans-serif; font-size: 16px; font-weight: 900;
+      cursor: pointer; width: 100%; text-decoration: none;
+      transition: all 0.2s; letter-spacing: 0.03em; gap: 8px;
+    }
+    .jobs-btn:hover { background: var(--yellow-dark); transform: translateY(-1px); }
+
+    .jobs-note { font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; margin-top: 10px; }
+
+    .retry-link { text-align: center; margin-top: 14px; }
+    .retry-link a { font-size: 13px; color: var(--gray); text-decoration: underline; cursor: pointer; }
+
+    /* THANKS */
+    .thanks-page {
+      text-align: center; padding: 48px 20px;
+      background: var(--white); border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(26,67,170,0.08);
+      border: 1px solid var(--border); margin-top: 24px;
+    }
+    .thanks-icon { font-size: 52px; display: block; margin-bottom: 18px; }
+    .thanks-page h2 { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 12px; }
+    .thanks-page p { font-size: 14px; color: var(--gray); line-height: 1.8; margin-bottom: 28px; }
+    .retry-btn-bottom {
+      background: transparent; color: var(--navy);
+      border: 2px solid var(--navy); border-radius: 10px; padding: 13px;
+      font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; width: 100%; display: block;
+    }
+
+    .hidden { display: none !important; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero" id="hero-section">
+  <img class="hero-img" src="img/fv_bg.jpg" alt="退職・転職診断">
+  <div class="hero-btn-overlay">
+    <button class="start-btn" onclick="startDiagnosis()"></button>
+  </div>
+</div>
+
+<main>
+  <!-- QUIZ -->
+  <section class="hidden" id="quiz-section">
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-step" id="prog-step">STEP 1 / 5</span>
+        <span class="progress-step" id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="q-card" id="q-card">
+      <div class="q-category" id="q-category"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="multi-hint hidden" id="multi-hint">複数選択できます</div>
+      <div class="options" id="q-opts"></div>
+      <div class="nav-row">
+        <button class="back-btn" id="back-btn" onclick="prevQ()">← 戻る</button>
+        <button class="next-btn" id="next-btn" onclick="nextQ()">次へ →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADING -->
+  <section class="hidden loading" id="loading-section">
+    <div class="loading-ring"></div>
+    <div class="loading-text">あなたの状況を分析中...</div>
+    <div class="loading-steps">
+      <div class="loading-step" id="ls1"><span class="step-dot"></span>回答データを確認</div>
+      <div class="loading-step" id="ls2"><span class="step-dot"></span>状況パターンを照合</div>
+      <div class="loading-step" id="ls3"><span class="step-dot"></span>最適な次の一手を算出</div>
+      <div class="loading-step" id="ls4"><span class="step-dot"></span>診断結果を生成</div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="hidden" id="result-section">
+    <div class="result-hero">
+      <span class="result-label">診断結果</span>
+      <div class="result-type" id="res-type"></div>
+      <div class="result-sub" id="res-sub"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">あなたの状況分析</div>
+      <div class="result-comment" id="res-comment"></div>
+    </div>
+    <div class="action-card" id="action-card">
+      <span class="action-label">おすすめの次の一手</span>
+      <div class="action-title" id="action-title"></div>
+      <div class="action-desc" id="action-desc"></div>
+      <a id="action-btn" href="#" target="_blank" class="jobs-btn">
+        <span id="action-btn-text">無料で相談してみる</span>
+      </a>
+      <p class="jobs-note" id="action-note"></p>
+    </div>
+    <div class="retry-link">
+      <a onclick="goTop()">もう一度診断する</a>
+    </div>
+  </section>
+
+  <!-- THANKS -->
+  <section class="hidden" id="thanks-section" style="padding:0 0 60px;">
+    <div class="thanks-page">
+      <span class="thanks-icon">✉️</span>
+      <h2>ありがとうございます</h2>
+      <p>24時間以内に詳細情報をお送りします。<br>しばらくお待ちください。</p>
+      <button class="retry-btn-bottom" onclick="goTop()">もう一度診断する</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const questions = [
+  {
+    id: "feelings",
+    category: "Q1 / 現在の状況",
+    text: "今の職場で感じていることは？（複数選択可）",
+    type: "multi",
+    options: ["毎朝会社に行くのがつらい","上司・同僚との関係がしんどい","仕事内容が合っていない","給与・待遇に不満がある","体や心に不調が出てきた"],
+    scores: [15, 12, 8, 8, 18]
+  },
+  {
+    id: "duration",
+    category: "Q2 / 期間",
+    text: "その状態はどのくらい続いていますか？",
+    type: "single",
+    options: ["1ヶ月未満","1〜3ヶ月","3〜6ヶ月","半年以上"],
+    scores: [5, 10, 15, 20]
+  },
+  {
+    id: "communication",
+    category: "Q3 / 退職の意思表示",
+    text: "退職の意思を会社に伝えることについて",
+    type: "single",
+    options: ["自分で伝えられそう","伝えたいけど言い出せない","絶対に自分では言えない","すでに伝えたが引き止められている"],
+    scores: [5, 15, 20, 20]
+  },
+  {
+    id: "timing",
+    category: "Q4 / 時期感",
+    text: "退職・転職の時期感は？",
+    type: "single",
+    options: ["できるだけ早く（今月中に）","1〜3ヶ月以内","半年以内","まだ決めていない"],
+    scores: [20, 15, 10, 5]
+  },
+  {
+    id: "employment",
+    category: "Q5 / 雇用形態",
+    text: "雇用形態は？",
+    type: "single",
+    options: ["正社員","契約社員・派遣","アルバイト・パート","その他"],
+    scores: [10, 8, 6, 5]
+  }
+];
+
+// 結果タイプ定義
+const resultTypes = {
+  A: {
+    type: "今すぐ動くべきタイプ",
+    sub: "あなたの状況は、一人で抱え込むには限界に近づいています。",
+    comment: "長期間にわたるストレスや、退職を自分で伝えることへの強い抵抗感が見られます。このまま我慢を続けることは、心身への負担が大きくなるばかりです。プロのサポートを借りて、スムーズに次のステップへ進むことをおすすめします。",
+    actionTitle: "退職代行Jobsに無料相談する",
+    actionDesc: "弁護士監修・労働組合連携の安心サービス。あなたの代わりに会社への連絡をすべて対応。最短即日で退職が可能です。まずは無料相談から。",
+    actionUrl: "https://jobs.hiyatoku.com/", // アフィリエイトリンクに差し替え
+    actionBtnText: "LINEで無料相談する（退職代行Jobs）",
+    actionNote: "※相談・登録無料。費用は退職後に発生します。"
+  },
+  B: {
+    type: "準備して動くべきタイプ",
+    sub: "転職活動を始めながら、退職のタイミングを見極めましょう。",
+    comment: "今すぐではなくても、転職の準備を始めるのに最適なタイミングです。まずは転職エージェントに登録して、どんな選択肢があるかを把握することをおすすめします。動き出すことで、気持ちも楽になるはずです。",
+    actionTitle: "まず転職エージェントに相談してみる",
+    actionDesc: "リクナビNEXTやdodaなど、無料で利用できる転職エージェントへの登録がおすすめです。現職を続けながら活動できます。",
+    actionUrl: "https://next.rikunabi.com/", // 必要に応じてアフィリエイトリンクに変更
+    actionBtnText: "無料で転職相談してみる",
+    actionNote: "※登録・利用は完全無料です。"
+  },
+  C: {
+    type: "まず情報収集タイプ",
+    sub: "今すぐではなくても、選択肢を知っておくことが大切です。",
+    comment: "今の職場に完全に満足しているわけではないものの、まだ決断するには早い段階かもしれません。ただ、いざというときのために退職・転職の知識を持っておくことは重要です。まずは情報収集から始めましょう。",
+    actionTitle: "退職・転職の基礎知識を知っておこう",
+    actionDesc: "今すぐ動かなくても、知識があれば安心です。退職代行や転職エージェントは無料で相談できるので、話を聞くだけでも価値があります。",
+    actionUrl: "https://jobs.hiyatoku.com/",
+    actionBtnText: "無料で話を聞いてみる",
+    actionNote: "※相談だけでも大丈夫です。"
+  }
+};
+
+let cur = 0;
+let answers = {};
+let multiSelections = [];
+
+function startDiagnosis() {
+  document.getElementById('hero-section').classList.add('hidden');
+  document.getElementById('quiz-section').classList.remove('hidden');
+  document.getElementById('loading-section').classList.add('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('thanks-section').classList.add('hidden');
+  answers = {};
+  multiSelections = [];
+  cur = 0;
+  window.scrollTo({top:0, behavior:'smooth'});
+  renderQ();
+}
+
+function renderQ() {
+  const q = questions[cur];
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('prog-step').textContent = `STEP ${cur+1} / ${questions.length}`;
+  const pct = Math.round((cur / questions.length) * 100);
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  const mh = document.getElementById('multi-hint');
+  q.type === 'multi' ? mh.classList.remove('hidden') : mh.classList.add('hidden');
+  if (q.type === 'multi') multiSelections = answers[cur] ? [...answers[cur]] : [];
+
+  document.getElementById('back-btn').style.visibility = cur === 0 ? 'hidden' : 'visible';
+
+  const opts = document.getElementById('q-opts');
+  opts.innerHTML = '';
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.classList.remove('active');
+
+  const labels = ['A','B','C','D','E'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    if (q.type === 'single' && answers[cur] === i) btn.classList.add('selected');
+    if (q.type === 'multi' && multiSelections.includes(i)) btn.classList.add('selected');
+    btn.innerHTML = `<span class="opt-mark">${labels[i]}</span>${opt}`;
+    btn.onclick = () => {
+      if (q.type === 'single') {
+        answers[cur] = i;
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        nextBtn.classList.add('active');
+      } else {
+        const idx = multiSelections.indexOf(i);
+        idx > -1 ? multiSelections.splice(idx, 1) : multiSelections.push(i);
+        btn.classList.toggle('selected');
+        answers[cur] = multiSelections.length > 0 ? [...multiSelections] : null;
+        nextBtn.classList[multiSelections.length > 0 ? 'add' : 'remove']('active');
+      }
+    };
+    opts.appendChild(btn);
+  });
+
+  if (q.type === 'multi') {
+    if (multiSelections.length > 0) nextBtn.classList.add('active');
+  } else {
+    if (answers[cur] !== undefined && answers[cur] !== null) nextBtn.classList.add('active');
+  }
+
+  document.getElementById('q-card').style.animation = 'none';
+  void document.getElementById('q-card').offsetWidth;
+  document.getElementById('q-card').style.animation = 'fadeUp 0.4s ease both';
+}
+
+function nextQ() {
+  if (cur < questions.length - 1) { cur++; renderQ(); }
+  else { showLoading(); }
+}
+
+function prevQ() {
+  if (cur > 0) { cur--; renderQ(); }
+}
+
+function goTop() {
+  document.getElementById('hero-section').classList.remove('hidden');
+  document.getElementById('quiz-section').classList.add('hidden');
+  document.getElementById('loading-section').classList.add('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('thanks-section').classList.add('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function showLoading() {
+  document.getElementById('quiz-section').classList.add('hidden');
+  document.getElementById('loading-section').classList.remove('hidden');
+  ['ls1','ls2','ls3','ls4'].forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('show');
+      if (i > 0) document.getElementById(['ls1','ls2','ls3','ls4'][i-1]).classList.add('done');
+    }, i * 750);
+  });
+  setTimeout(showResult, 3400);
+}
+
+function calcResult() {
+  let score = 0;
+
+  // Q1（複数選択）
+  if (Array.isArray(answers[0])) {
+    answers[0].forEach(i => score += questions[0].scores[i]);
+  }
+  // Q2〜Q5（単一選択）
+  for (let qi = 1; qi < 5; qi++) {
+    if (answers[qi] !== undefined && answers[qi] !== null) {
+      score += questions[qi].scores[answers[qi]];
+    }
+  }
+
+  // Q3で「絶対に言えない」「引き止め」→ 強制A
+  if (answers[2] === 2 || answers[2] === 3) return 'A';
+  // Q4で「今すぐ」かつスコア高い
+  if (answers[3] === 0 && score >= 40) return 'A';
+  // 高スコア
+  if (score >= 55) return 'A';
+  if (score >= 35) return 'B';
+  return 'C';
+}
+
+function showResult() {
+  document.getElementById('loading-section').classList.add('hidden');
+  document.getElementById('result-section').classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+
+  const type = calcResult();
+  const r = resultTypes[type];
+
+  document.getElementById('res-type').textContent = r.type;
+  document.getElementById('res-sub').textContent = r.sub;
+  document.getElementById('res-comment').textContent = r.comment;
+  document.getElementById('action-title').textContent = r.actionTitle;
+  document.getElementById('action-desc').textContent = r.actionDesc;
+  document.getElementById('action-btn').href = r.actionUrl;
+  document.getElementById('action-btn-text').textContent = r.actionBtnText;
+  document.getElementById('action-note').textContent = r.actionNote;
+}
+</script>
+</body>
+</html>
